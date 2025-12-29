@@ -2,9 +2,9 @@
 
 This Christmas I was gifted this [extremely difficult jigsaw puzzle](https://www.amazon.com/Bending-Wooden-Labyrinth-Difficult-Puzzles/dp/B08DDFNGV6).
 
-Inspired by day 12 of (Advent of Code 2025)[https://adventofcode.com/2025], I decided to make a solver for this puzzle.
+Inspired by day 12 of [Advent of Code 2025](https://adventofcode.com/2025), I decided to make a solver for this puzzle.
 
-** Place holder for demo video **
+**Place holder for demo video**
 
 ## Usage
 
