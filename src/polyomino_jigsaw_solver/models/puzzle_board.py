@@ -23,6 +23,9 @@ class PuzzleBoard:
     width: int
     height: int
     filled_cells: Set[Tuple[int, int]] = field(default_factory=set)
+    placed_pieces: List[Tuple[List[Tuple[int, int]], int, int]] = field(
+        default_factory=list
+    )
 
     def check_piece(
         self, transformation: List[Tuple[int, int]], row: int, col: int
@@ -106,6 +109,8 @@ class PuzzleBoard:
             board_y = y + y_offset
             self.filled_cells.add((board_x, board_y))
 
+        self.placed_pieces.append((transformation, row, col))
+
     def remove_piece(
         self, transformation: List[Tuple[int, int]], row: int, col: int
     ) -> None:
@@ -144,3 +149,22 @@ class PuzzleBoard:
 
         for cell in piece_cells:
             self.filled_cells.discard(cell)
+
+        self.placed_pieces.remove((transformation, row, col))
+
+    def is_cell_empty(self, row: int, col: int) -> bool:
+        """Check if a cell is empty.
+
+        Args:
+            row: The row (y-coordinate) of the cell
+            col: The column (x-coordinate) of the cell
+
+        Returns:
+            True if the cell is empty, False if filled
+
+        Raises:
+            ValueError: If the position is out of bounds
+        """
+        if not (0 <= row < self.height and 0 <= col < self.width):
+            raise ValueError("Position out of bounds")
+        return (col, row) not in self.filled_cells
