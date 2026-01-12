@@ -4,7 +4,7 @@ from typing import Callable, FrozenSet
 import customtkinter as ctk
 from tkinter import filedialog
 
-from woodster_jigsaw_solver.gui.grid_widget import GridWidget
+from polyomino_jigsaw_solver.gui.grid_widget import GridWidget
 
 DEFAULT_BOARD_ROWS = 44
 DEFAULT_BOARD_COLS = 44

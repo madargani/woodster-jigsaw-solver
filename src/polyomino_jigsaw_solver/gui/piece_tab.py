@@ -3,9 +3,9 @@ from typing import Dict, Callable
 
 import customtkinter as ctk
 from tkinter import filedialog
-from woodster_jigsaw_solver.gui.piece_list import PieceListWidget
-from woodster_jigsaw_solver.gui.piece_editor import PieceEditorDialog
-from woodster_jigsaw_solver.models.puzzle_piece import PuzzlePiece
+from polyomino_jigsaw_solver.gui.piece_list import PieceListWidget
+from polyomino_jigsaw_solver.gui.piece_editor import PieceEditorDialog
+from polyomino_jigsaw_solver.models.puzzle_piece import PuzzlePiece
 
 
 class PuzzlePieceTab(ctk.CTkFrame):

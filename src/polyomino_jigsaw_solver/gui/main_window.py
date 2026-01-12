@@ -1,9 +1,10 @@
 from typing import Dict, FrozenSet
 
 import customtkinter as ctk
-from woodster_jigsaw_solver.gui.piece_tab import PuzzlePieceTab
-from woodster_jigsaw_solver.gui.board_tab import PuzzleBoardTab
-from woodster_jigsaw_solver.models.puzzle_piece import PuzzlePiece
+
+from polyomino_jigsaw_solver.gui.board_tab import PuzzleBoardTab
+from polyomino_jigsaw_solver.gui.piece_tab import PuzzlePieceTab
+from polyomino_jigsaw_solver.models.puzzle_piece import PuzzlePiece
 
 
 class MainWindow(ctk.CTk):

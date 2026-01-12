@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from woodster_jigsaw_solver.models.puzzle_piece import PuzzlePiece
+from polyomino_jigsaw_solver.models.puzzle_piece import PuzzlePiece
 
 
 class PieceShapeWidget(ctk.CTkFrame):

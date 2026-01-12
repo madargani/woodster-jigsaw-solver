@@ -1,5 +1,5 @@
 def main():
-    from woodster_jigsaw_solver.gui import MainWindow
+    from polyomino_jigsaw_solver.gui import MainWindow
 
     app = MainWindow()
     app.mainloop()

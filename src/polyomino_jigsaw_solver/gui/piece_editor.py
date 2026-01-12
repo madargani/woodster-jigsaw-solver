@@ -1,8 +1,8 @@
 from typing import Callable, FrozenSet, Optional
 
 import customtkinter as ctk
-from woodster_jigsaw_solver.gui.grid_widget import GridWidget
-from woodster_jigsaw_solver.models.puzzle_piece import PuzzlePiece
+from polyomino_jigsaw_solver.gui.grid_widget import GridWidget
+from polyomino_jigsaw_solver.models.puzzle_piece import PuzzlePiece
 
 
 class PieceEditorDialog(ctk.CTkToplevel):
