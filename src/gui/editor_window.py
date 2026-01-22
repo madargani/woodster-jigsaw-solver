@@ -11,19 +11,9 @@ from typing import override
 
 from PySide6.QtCore import QEvent, QSize
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import (
-    QFileDialog,
-    QHBoxLayout,
-    QLabel,
-    QMainWindow,
-    QMessageBox,
-    QPushButton,
-    QSizePolicy,
-    QStatusBar,
-    QTabWidget,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtWidgets import (QFileDialog, QHBoxLayout, QLabel, QMainWindow,
+                               QMessageBox, QPushButton, QSizePolicy,
+                               QStatusBar, QTabWidget, QVBoxLayout, QWidget)
 
 from src.gui.board_tab import BoardTab
 from src.gui.piece_tab import PieceTab
@@ -31,7 +21,8 @@ from src.gui.saved_puzzles_tab import SavedPuzzlesTab
 from src.gui.visualization_window import VisualizationWindow
 from src.models.piece import PuzzlePiece
 from src.models.puzzle_config import PuzzleConfiguration
-from src.utils.file_io import export_puzzle, import_puzzle, load_puzzle, save_puzzle
+from src.utils.file_io import (export_puzzle, import_puzzle, load_puzzle,
+                               save_puzzle)
 
 SAVED_PUZZLES_DIR = Path.home() / ".polyomino-puzzles" / "saved"
 
@@ -411,10 +402,14 @@ class EditorWindow(QMainWindow):
             self._update_board()
             self._update_validation()
 
+            # Use the piece tab's internal method to add pieces with proper sorting
             self._piece_tab.clear_all()
             for piece, count in self._config.pieces.items():
-                for _ in range(count):
-                    self._piece_tab.add_piece(piece)
+                self._piece_tab._pieces[piece] = count
+            self._piece_tab._refresh_piece_list()
+            self._piece_tab._piece_count_label.setText(
+                f"Pieces: {len(self._piece_tab._get_all_pieces())}"
+            )
 
             self._status_bar.showMessage(f"Imported puzzle: {path.name}")
 
@@ -532,10 +527,14 @@ class EditorWindow(QMainWindow):
             self._update_board()
             self._update_validation()
 
+            # Use the piece tab's internal method to add pieces with proper sorting
             self._piece_tab.clear_all()
             for piece, count in self._config.pieces.items():
-                for _ in range(count):
-                    self._piece_tab.add_piece(piece)
+                self._piece_tab._pieces[piece] = count
+            self._piece_tab._refresh_piece_list()
+            self._piece_tab._piece_count_label.setText(
+                f"Pieces: {len(self._piece_tab._get_all_pieces())}"
+            )
 
             self._status_bar.showMessage(f"Loaded puzzle: {filepath.name}")
 

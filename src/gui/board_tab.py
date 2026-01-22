@@ -10,13 +10,8 @@ from collections.abc import Callable
 
 from PySide6.QtCore import QSize, Qt, Signal
 from PySide6.QtGui import QColor, QPainter, QPaintEvent, QPen, QResizeEvent
-from PySide6.QtWidgets import (
-    QGridLayout,
-    QLabel,
-    QSizePolicy,
-    QSpinBox,
-    QWidget,
-)
+from PySide6.QtWidgets import (QGridLayout, QLabel, QSizePolicy, QSpinBox,
+                               QWidget)
 
 
 class BoardGridWidget(QWidget):
@@ -35,7 +30,7 @@ class BoardGridWidget(QWidget):
     blocked_cells_changed = Signal(set)
 
     # Constants
-    MIN_CELL_SIZE = 15
+    MIN_CELL_SIZE = 5
     MAX_CELL_SIZE = 50
     DEFAULT_CELL_SIZE = 25
     BLOCKED_COLOR = QColor(80, 80, 80)  # Dark gray for blocked cells

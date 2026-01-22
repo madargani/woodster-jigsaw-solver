@@ -548,9 +548,13 @@ class PieceTab(QWidget):
         selected_items = self._piece_list.selectedItems()
         if selected_items:
             index = self._piece_list.row(selected_items[0])
-            pieces_list = list(self._pieces.keys())
-            if 0 <= index < len(pieces_list):
-                self._selected_piece = pieces_list[index]
+            # Sort pieces the same way as _refresh_piece_list
+            sorted_pieces = sorted(
+                self._pieces.keys(),
+                key=lambda p: len(p.canonical_shape),
+            )
+            if 0 <= index < len(sorted_pieces):
+                self._selected_piece = sorted_pieces[index]
                 # Load the piece shape into the grid
                 shape = self._selected_piece.canonical_shape
                 self._grid_widget.filled_cells = set(shape)
@@ -685,11 +689,14 @@ class PieceTab(QWidget):
             piece: The piece to find
 
         Returns:
-            The index in the pieces list, or -1 if not found
+            The index in the sorted pieces list, or -1 if not found
         """
-        pieces_list = list(self._pieces.keys())
+        sorted_pieces = sorted(
+            self._pieces.keys(),
+            key=lambda p: len(p.canonical_shape),
+        )
         try:
-            return pieces_list.index(piece)
+            return sorted_pieces.index(piece)
         except ValueError:
             return -1
 
@@ -758,9 +765,12 @@ class PieceTab(QWidget):
 
     def _select_piece_in_list(self, piece: PuzzlePiece) -> None:
         """Select a piece in the list widget."""
-        pieces_list = list(self._pieces.keys())
+        sorted_pieces = sorted(
+            self._pieces.keys(),
+            key=lambda p: len(p.canonical_shape),
+        )
         try:
-            index = pieces_list.index(piece)
+            index = sorted_pieces.index(piece)
             self._piece_list.setCurrentRow(index)
         except ValueError:
             pass
