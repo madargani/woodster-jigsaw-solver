@@ -380,3 +380,109 @@ class TestImportPuzzle:
         finally:
             if filepath.exists():
                 filepath.unlink()
+
+    def test_import_puzzle_merges_duplicate_shapes(self) -> None:
+        """Test that importing puzzle with duplicate shapes merges counts."""
+        from src.utils.file_io import import_puzzle
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
+            filepath = Path(f.name)
+            data = {
+                "name": "Duplicate Shapes Test",
+                "board_width": 4,
+                "board_height": 4,
+                "pieces": [
+                    {"shape": [[0, 0]], "count": 1},
+                    {"shape": [[0, 0]], "count": 1},
+                ],
+            }
+            json.dump(data, f)
+
+        try:
+            imported_config = import_puzzle(filepath)
+
+            assert len(imported_config.pieces) == 1
+            piece = list(imported_config.pieces.keys())[0]
+            assert piece.canonical_shape == frozenset({(0, 0)})
+            assert imported_config.pieces[piece] == 2
+        finally:
+            if filepath.exists():
+                filepath.unlink()
+
+    def test_import_puzzle_multiple_duplicate_entries(self) -> None:
+        """Test that importing puzzle with multiple duplicate entries accumulates counts."""
+        from src.utils.file_io import import_puzzle
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
+            filepath = Path(f.name)
+            data = {
+                "name": "Multiple Duplicates Test",
+                "board_width": 4,
+                "board_height": 4,
+                "pieces": [
+                    {"shape": [[0, 0]], "count": 2},
+                    {"shape": [[0, 0]], "count": 3},
+                    {"shape": [[0, 0]], "count": 1},
+                ],
+            }
+            json.dump(data, f)
+
+        try:
+            imported_config = import_puzzle(filepath)
+
+            assert len(imported_config.pieces) == 1
+            piece = list(imported_config.pieces.keys())[0]
+            assert piece.canonical_shape == frozenset({(0, 0)})
+            assert imported_config.pieces[piece] == 6
+        finally:
+            if filepath.exists():
+                filepath.unlink()
+
+    def test_import_puzzle_mixed_duplicate_and_unique(self) -> None:
+        """Test that importing puzzle with mixed duplicates and unique pieces works."""
+        from src.utils.file_io import import_puzzle
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
+            filepath = Path(f.name)
+            data = {
+                "name": "Mixed Test",
+                "board_width": 5,
+                "board_height": 5,
+                "pieces": [
+                    {"shape": [[0, 0]], "count": 1},
+                    {"shape": [[0, 0]], "count": 1},
+                    {"shape": [[0, 0], [0, 1]], "count": 2},
+                    {"shape": [[0, 0]], "count": 2},
+                    {"shape": [[0, 1], [1, 0], [1, 1]], "count": 1},
+                ],
+            }
+            json.dump(data, f)
+
+        try:
+            imported_config = import_puzzle(filepath)
+
+            assert len(imported_config.pieces) == 3
+
+            single_cell_piece = next(
+                p
+                for p in imported_config.pieces
+                if p.canonical_shape == frozenset({(0, 0)})
+            )
+            assert imported_config.pieces[single_cell_piece] == 4
+
+            domino_piece = next(
+                p
+                for p in imported_config.pieces
+                if p.canonical_shape == frozenset({(0, 0), (0, 1)})
+            )
+            assert imported_config.pieces[domino_piece] == 2
+
+            l_piece = next(
+                p
+                for p in imported_config.pieces
+                if p.canonical_shape == frozenset({(1, 0), (0, 0), (0, 1)})
+            )
+            assert imported_config.pieces[l_piece] == 1
+        finally:
+            if filepath.exists():
+                filepath.unlink()

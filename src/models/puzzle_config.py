@@ -338,18 +338,6 @@ class PuzzleConfiguration:
             if field not in data:
                 raise ValueError(f"Missing required field: {field}")
 
-        pieces_dict: dict[PuzzlePiece, int] = {}
-        for piece_data in data["pieces"]:
-            if "shape" not in piece_data:
-                raise ValueError("Invalid piece data: missing shape")
-
-            shape = set((row, col) for row, col in piece_data["shape"])
-            piece = PuzzlePiece(shape=shape)
-            count = piece_data.get(
-                "count", 1
-            )  # Default to 1 for backward compatibility
-            pieces_dict[piece] = count
-
         # Handle blocked_cells (handle missing field for backward compatibility)
         blocked_cells: set[tuple[int, int]] = set()
         if "blocked_cells" in data:
@@ -359,9 +347,20 @@ class PuzzleConfiguration:
             name=data["name"],
             board_width=data["board_width"],
             board_height=data["board_height"],
-            pieces=pieces_dict,
+            pieces=None,
             blocked_cells=blocked_cells,
         )
+
+        for piece_data in data["pieces"]:
+            if "shape" not in piece_data:
+                raise ValueError("Invalid piece data: missing shape")
+
+            shape = set((row, col) for row, col in piece_data["shape"])
+            piece = PuzzlePiece(shape=shape)
+            count = piece_data.get(
+                "count", 1
+            )  # Default to 1 for backward compatibility
+            config.add_piece(piece, count)
 
         # Handle timestamps if present
         if "created_at" in data:

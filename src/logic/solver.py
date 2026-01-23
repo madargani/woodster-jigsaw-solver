@@ -32,15 +32,21 @@ def solve_backtracking(
     Yields:
         Dictionary containing:
         - type: 'place' | 'remove' | 'solved' | 'no_solution'
-        - board_snapshot: Deep copy of current board state
-        - placed_pieces: List of (shape, position) tuples for placed pieces
-        - remaining_pieces: Dict of piece -> count for pieces left to place
+        - board_snapshot: Direct reference to current board state (READ-ONLY)
+        - placed_pieces: Direct reference to list of (shape, position) tuples (READ-ONLY)
+        - remaining_pieces: Direct reference to dict of piece -> count (READ-ONLY)
         - step_count: Number of operations performed
+
+    Important:
+        The yielded objects are direct references to internal solver state.
+        Consumers MUST treat them as read-only and must not modify them.
+        The generator yields control to the caller, and expects to resume
+        with unchanged state when next() is called.
     """
     # Single mutable state
+    step_count = 0
     remaining: dict[PuzzlePiece, int] = pieces.copy()
     placed: list[tuple[frozenset[tuple[int, int]], tuple[int, int], PuzzlePiece]] = []
-    step_count = 0
 
     # Get all unique piece types sorted by area (largest first)
     piece_types = sorted(remaining.keys(), key=lambda p: p.area, reverse=True)
@@ -49,9 +55,9 @@ def solve_backtracking(
     if not remaining:
         yield {
             "type": "solved",
-            "board_snapshot": board.copy(),
-            "placed_pieces": placed.copy(),
-            "remaining_pieces": remaining.copy(),
+            "board_snapshot": board,
+            "placed_pieces": placed,
+            "remaining_pieces": remaining,
             "step_count": step_count,
         }
         return
@@ -79,9 +85,9 @@ def solve_backtracking(
                 step_count += 1
                 yield {
                     "type": "solved",
-                    "board_snapshot": board.copy(),
-                    "placed_pieces": placed.copy(),
-                    "remaining_pieces": remaining.copy(),
+                    "board_snapshot": board,
+                    "placed_pieces": placed,
+                    "remaining_pieces": remaining,
                     "step_count": step_count,
                 }
                 return True
@@ -96,42 +102,41 @@ def solve_backtracking(
 
             # Try each orientation
             for orientation in piece.orientations:
-                # Try each cell in the orientation as the anchor
-                for shape_cell in orientation:
-                    origin = (cell[0] - shape_cell[0], cell[1] - shape_cell[1])
-                    if board.can_place_shape(orientation, origin):
-                        # Place the piece
-                        board.place_shape(orientation, origin)
-                        placed.append((orientation, origin, piece))
-                        remaining[piece] = count - 1
-                        if remaining[piece] == 0:
-                            del remaining[piece]
+                top_left_cell = min(orientation, key=lambda c: (c[0], c[1]))
+                origin = (cell[0] - top_left_cell[0], cell[1] - top_left_cell[1])
 
-                        step_count += 1
-                        yield {
-                            "type": "place",
-                            "board_snapshot": board.copy(),
-                            "placed_pieces": placed.copy(),
-                            "remaining_pieces": remaining.copy(),
-                            "step_count": step_count,
-                        }
+                if board.can_place_shape(orientation, origin):
+                    board.place_shape(orientation, origin)
+                    placed.append((orientation, origin, piece))
+                    remaining[piece] = count - 1
+                    if remaining[piece] == 0:
+                        del remaining[piece]
 
-                        # Recurse
-                        if (yield from backtrack()):
-                            return True
+                    step_count += 1
+                    yield {
+                        "type": "place",
+                        "board_snapshot": board,
+                        "placed_pieces": placed,
+                        "remaining_pieces": remaining,
+                        "step_count": step_count,
+                    }
 
-                        # Backtrack
-                        shape, pos, p = placed.pop()
-                        board.remove_shape(shape, pos)
-                        remaining[p] = remaining.get(p, 0) + 1
-                        step_count += 1
-                        yield {
-                            "type": "remove",
-                            "board_snapshot": board.copy(),
-                            "placed_pieces": placed.copy(),
-                            "remaining_pieces": remaining.copy(),
-                            "step_count": step_count,
-                        }
+                    # Recurse
+                    if (yield from backtrack()):
+                        return True
+
+                    # Backtrack
+                    shape, pos, p = placed.pop()
+                    board.remove_shape(shape, pos)
+                    remaining[p] = remaining.get(p, 0) + 1
+                    step_count += 1
+                    yield {
+                        "type": "remove",
+                        "board_snapshot": board,
+                        "placed_pieces": placed,
+                        "remaining_pieces": remaining,
+                        "step_count": step_count,
+                    }
 
         # No piece fits at this cell
         return False
@@ -141,8 +146,8 @@ def solve_backtracking(
         # No solution found
         yield {
             "type": "no_solution",
-            "board_snapshot": board.copy(),
-            "placed_pieces": placed.copy(),
-            "remaining_pieces": remaining.copy(),
+            "board_snapshot": board,
+            "placed_pieces": placed,
+            "remaining_pieces": remaining,
             "step_count": step_count,
         }

@@ -9,7 +9,7 @@ class GameBoard:
     Attributes:
         width: Number of columns in the board
         height: Number of rows in the board
-        cells: Grid cells mapping (row, col) -> piece_id or None
+        cells: 2D array (list of lists) where cells[row][col] = piece_id, None, or -1
         blocked_cells: Set of initially filled (blocked) cell positions
     """
 
@@ -37,9 +37,9 @@ class GameBoard:
 
         self._width = width
         self._height = height
-        self._cells: dict[tuple[int, int], int | None] = {
-            (row, col): None for row in range(height) for col in range(width)
-        }
+        self._cells: list[list[int | None]] = [
+            [None for _ in range(width)] for _ in range(height)
+        ]
 
         # Validate and set blocked cells
         self._blocked_cells: set[tuple[int, int]] = set()
@@ -51,8 +51,8 @@ class GameBoard:
                         f"Blocked cell {cell} is out of board bounds ({width}x{height})"
                     )
                 self._blocked_cells.add(cell)
-                # Mark blocked cells as occupied in the cells dict (use -1 as special marker)
-                self._cells[(row, col)] = -1
+                # Mark blocked cells as occupied (use -1 as special marker)
+                self._cells[row][col] = -1
 
     @property
     def width(self) -> int:
@@ -82,12 +82,12 @@ class GameBoard:
     @property
     def filled_area(self) -> int:
         """Get number of occupied cells."""
-        return sum(1 for cell in self._cells.values() if cell is not None)
+        return sum(1 for row in self._cells for cell in row if cell is not None)
 
     @property
     def empty_area(self) -> int:
         """Get number of empty cells."""
-        return sum(1 for cell in self._cells.values() if cell is None)
+        return sum(1 for row in self._cells for cell in row if cell is None)
 
     def can_place_shape(
         self, shape: frozenset[tuple[int, int]], position: tuple[int, int]
@@ -114,7 +114,7 @@ class GameBoard:
                 return False
 
             # Check if cell is already occupied by a piece
-            cell_content = self._cells.get((row, col))
+            cell_content = self._cells[row][col]
             if cell_content is not None and cell_content != -1:
                 return False
 
@@ -139,7 +139,7 @@ class GameBoard:
         for row_offset, col_offset in shape:
             row = position[0] + row_offset
             col = position[1] + col_offset
-            self._cells[(row, col)] = shape_hash
+            self._cells[row][col] = shape_hash
 
     def remove_shape(
         self, shape: frozenset[tuple[int, int]], position: tuple[int, int]
@@ -157,14 +157,14 @@ class GameBoard:
         for row_offset, col_offset in shape:
             row = position[0] + row_offset
             col = position[1] + col_offset
-            if self._cells.get((row, col)) != shape_hash:
+            if self._cells[row][col] != shape_hash:
                 raise ValueError(f"Shape not found at position {position}")
 
         # Remove the shape
         for row_offset, col_offset in shape:
             row = position[0] + row_offset
             col = position[1] + col_offset
-            self._cells[(row, col)] = None
+            self._cells[row][col] = None
 
     def get_occupied_cells(self) -> set[tuple[int, int]]:
         """Get set of all occupied cell positions.
@@ -172,7 +172,12 @@ class GameBoard:
         Returns:
             Set of (row, col) tuples with pieces placed
         """
-        return {pos for pos, piece_id in self._cells.items() if piece_id is not None}
+        return {
+            (row, col)
+            for row in range(self._height)
+            for col in range(self._width)
+            if self._cells[row][col] is not None
+        }
 
     def get_empty_cells(self) -> set[tuple[int, int]]:
         """Get set of all empty cell positions.
@@ -180,7 +185,12 @@ class GameBoard:
         Returns:
             Set of (row, col) tuples without pieces
         """
-        return {pos for pos, piece_id in self._cells.items() if piece_id is None}
+        return {
+            (row, col)
+            for row in range(self._height)
+            for col in range(self._width)
+            if self._cells[row][col] is None
+        }
 
     def is_full(self) -> bool:
         """Check if board is completely filled.
@@ -188,7 +198,11 @@ class GameBoard:
         Returns:
             True if all cells are occupied
         """
-        return all(cell is not None for cell in self._cells.values())
+        return all(
+            self._cells[row][col] is not None
+            for row in range(self._height)
+            for col in range(self._width)
+        )
 
     def is_empty(self) -> bool:
         """Check if the board is completely empty.
@@ -197,7 +211,7 @@ class GameBoard:
             True if no pieces are placed (blocked cells are ignored)
         """
         # Check if any non-blocked cells are occupied
-        return all(cell is None or cell == -1 for cell in self._cells.values())
+        return all(cell is None or cell == -1 for row in self._cells for cell in row)
 
     def is_blocked(self, position: tuple[int, int]) -> bool:
         """Check if a cell is blocked (initially filled).
@@ -227,12 +241,15 @@ class GameBoard:
         Returns:
             Piece ID (hash) if cell is occupied, None otherwise
         """
-        return self._cells.get(position)
+        row, col = position
+        return self._cells[row][col]
 
     def clear(self) -> None:
         """Clear all pieces from the board."""
-        for pos in self._cells:
-            self._cells[pos] = None
+        for row in range(self._height):
+            for col in range(self._width):
+                if self._cells[row][col] != -1:
+                    self._cells[row][col] = None
 
     def copy(self) -> GameBoard:
         """Create a deep copy of the board.
@@ -241,7 +258,7 @@ class GameBoard:
             New GameBoard with identical state (including blocked cells)
         """
         new_board = GameBoard(self._width, self._height, self._blocked_cells.copy())
-        new_board._cells = self._cells.copy()
+        new_board._cells = [row[:] for row in self._cells]
         return new_board
 
     def __eq__(self, other: object) -> bool:
@@ -251,7 +268,11 @@ class GameBoard:
         return (
             self._width == other._width
             and self._height == other._height
-            and self._cells == other._cells
+            and all(
+                self._cells[row][col] == other._cells[row][col]
+                for row in range(self._height)
+                for col in range(self._width)
+            )
             and self._blocked_cells == other._blocked_cells
         )
 

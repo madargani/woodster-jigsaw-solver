@@ -10,18 +10,9 @@ from typing import Any, Generator, Optional
 
 from PySide6.QtCore import QSize, Qt, QTimer, Slot
 from PySide6.QtGui import QCloseEvent, QResizeEvent
-from PySide6.QtWidgets import (
-    QFrame,
-    QHBoxLayout,
-    QLabel,
-    QMainWindow,
-    QPushButton,
-    QSizePolicy,
-    QSlider,
-    QSpacerItem,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QMainWindow,
+                               QPushButton, QSizePolicy, QSlider, QSpacerItem,
+                               QVBoxLayout, QWidget)
 
 from src.gui.board_widget import BoardWidget
 
@@ -86,7 +77,7 @@ class VisualizationWindow(QMainWindow):
         control_layout.addWidget(speed_label)
 
         self._speed_slider = QSlider(Qt.Orientation.Horizontal)
-        self._speed_slider.setMinimum(10)
+        self._speed_slider.setMinimum(0)
         self._speed_slider.setMaximum(1000)
         self._speed_slider.setValue(100)
         self._speed_slider.valueChanged.connect(self._on_speed_changed)

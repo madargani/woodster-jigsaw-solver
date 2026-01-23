@@ -157,8 +157,12 @@ class TestGeneratorYieldFormat:
                 f"Invalid yield type: {yield_obj['type']}"
             )
 
-    def test_board_snapshot_is_deep_copy(self) -> None:
-        """Test that board_snapshot is a deep copy, not a reference."""
+    def test_board_snapshot_is_reference_not_copy(self) -> None:
+        """Test that board_snapshot is a direct reference, not a deep copy.
+
+        The solver yields direct references to internal state for memory efficiency.
+        Consumers MUST NOT modify the yielded objects, as it will corrupt the solver's state.
+        """
         from src.logic.solver import solve_backtracking
 
         domino = PuzzlePiece(shape={(0, 0), (0, 1)})
@@ -168,20 +172,8 @@ class TestGeneratorYieldFormat:
         generator = solve_backtracking(pieces, board)
         first_yield = next(generator)
 
-        # Get the snapshot
         snapshot = first_yield["board_snapshot"]
-
-        # Modify the snapshot at a different position (not where piece was placed)
-        # The first piece is placed at some position, so use a different one
-        if board.get_piece_at((0, 0)) is None:
-            test_pos = (0, 0)
-        else:
-            test_pos = (0, 1) if board.get_piece_at((0, 1)) is None else (1, 0)
-
-        snapshot.place_shape(frozenset({(0, 0)}), test_pos)
-
-        # Original board should be unchanged
-        assert board.get_piece_at(test_pos) is None
+        assert snapshot is board
 
     def test_step_count_increments(self) -> None:
         """Test that step_count increments with each yield."""
